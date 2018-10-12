@@ -1,0 +1,108 @@
+###################################################################################################################################
+#
+# Copyright 2017 IRD
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, see <http://www.gnu.org/licenses/> or
+# write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston,
+# MA 02110-1301, USA.
+#
+# You should have received a copy of the CeCILL-C license with this program.
+# If not see <http://www.cecill.info/licences/Licence_CeCILL-C_V1-en.txt>
+#
+# Intellectual property belongs to IRD 
+#
+# Written by Roland Akakpo, modified by Nora Scarcelli
+#
+###################################################################################################################################
+
+
+###################################################################################################################################
+# This script simulates different scenarii for population origin and estimates the most likely scenario
+# Needs files vcf_to_012.R, SFS_by_pop.R, Joint_SFS.R, fastsimcaol_param_wild.sh, Fastsimcaol_model_wild.sh, ML_Wild.R, Fastsimcaol_param_single.sh, Fastsimcaol_model_single.sh, ML_Single.R, Fastsimcaol_param_hybrid.sh, Fastsimcaol_model_single.sh and ML_hybrid.R  provided in folder 03_Fastsimcoal
+####################################################################################################################################
+
+
+
+##############
+# Filtration of individual and SNP
+##############
+
+#Filtration of missing data. Only SNPs with less than the mean observed missing data (7%) are kept
+vcftools --vcf input.vcf --max-missing 0.93 --recode --out output
+
+#Filtration for mean depth. Only genotypes with higher depth than the mean observed depth (7X) are kept
+vcftools --vcf input.vcf --minDP 7 --recode --out output
+
+#Random selection of individual (R)
+#Number of samples ($1) varies for each species ($2 = abyssinica, praehensilis, rotundata) and for each country ($3 = Ghana, Benin, Nigeria, Cameroon) according to the following table:
+#	                      Ghana	Benin	Nigeria	Cameroon
+#D. abyssinica	        3	        2	        5	        -
+#D. praehensilis	3	        3	        4	       10
+#D. rotundata    	2	        2	        3	       3
+data=as.data.frame(t(read.table("input.txt", sep="\t", row.names=1, h=T))) #input.txt = 3 columns: Sample_Name; Species, Countries
+sub_$2_$3=as.data.frame(subset(data, data$Species=="$2" & data$Countries=="$3"))
+$2_$3=sub_$2_$3[sample(1:nrow(sub_$2_$3), $1, replace=FALSE),] 
+
+#Deletion of individuals and SNP associated
+vcftools --vcf input.vcf --remove-indv Name --non-ref-ac-any 1 --recode --out output
+
+#Filtration for heterozygosity
+cat input.vcf | java -jar snpEff/SnpSift.jar filter "(countHom() > 20)" > out.vcf 
+
+
+
+##############
+# Estimation of joint SFS (R)
+##############
+
+#Convert vcf file to 012 format (R)
+vcf_to_012.R
+
+#Random selection of 100,000 SNP (R)
+data=fread("input.012")
+data=data[, sample(1:ncol(data), 100000, replace=FALSE)]
+
+#Calculation of one SFS per population (R)
+SFS_by_pop.R
+
+#Estimation of joint SFS (R)
+Joint_SFS.R
+
+
+
+##############
+# Choice of model using FastSimCoal
+##############
+
+#Wild topology
+#Parameters estimate (50 runs per model)
+fastsimcaol_param_wild.sh
+#Scenario choice (100 runs per model), run with the best parameters estimate
+Fastsimcaol_model_wild.sh
+ML_Wild.R
+
+#Single origin
+#Parameters estimate (50 runs per model)
+Fastsimcaol_param_single.sh
+#Scenario choice (100 runs per model), run with the best parameter estimate
+Fastsimcaol_model_single.sh
+ML_Single.R
+
+#Hybrid origin
+#Parameters estimate (50 runs per model)
+Fastsimcaol_param_hybrid.sh
+#Scenario choice (100 runs per model), run with the best parameter estimate
+Fastsimcaol_model_single.sh
+ML_hybrid.R

@@ -1,0 +1,88 @@
+###################################################################################################################################
+#
+# Copyright 2017 IRD
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, see <http://www.gnu.org/licenses/> or
+# write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston,
+# MA 02110-1301, USA.
+#
+# You should have received a copy of the CeCILL-C license with this program.
+# If not see <http://www.cecill.info/licences/Licence_CeCILL-C_V1-en.txt>
+#
+# Intellectual property belongs to IRD 
+#
+# Written by Nora Scarcelli
+#
+###################################################################################################################################
+
+
+###################################################################################################################################
+# This script calculates different statistics for genetic diversity, estimates the genetic structure and calulates LD
+# Needs files Singleton.R, Structure.R and LD.R provided in folder 02_Diversity_Structure_LD
+####################################################################################################################################
+
+
+
+##############
+# Basic NGS statistics
+##############
+
+vcftools --vcf in.vcf --depth --out out
+vcftools --vcf in.vcf --missing-indv --out out
+vcftools --vcf in.vcf --missing-site --out out
+
+
+##############
+# Diversity
+##############
+
+vcftools --vcf in.vcf --singletons --out out
+vcftools --vcf in.vcf --window-pi 1000 --out out
+
+
+
+##############
+# Geographical distribution of singletons (R)
+##############
+
+Singleton.R
+
+
+
+##############
+# Genetic structure
+##############
+
+#Ancestry calculation using Admixture
+vcftools --vcf in.vcf --plink
+sed 's/0\tB/1\tB/g' in.map>in.map
+plink --file in --out out --make-bed
+for K in 1 2 3 4 5 6 7 8 9 10; do admixture -s time --cv out.bed $K | tee log${K}.out; done
+
+#Ancestry representation (R)
+Structure.R
+
+
+
+##############
+# LD calculation
+##############
+
+#LD estimation and representation
+vcftools --vcf in.vcf --maf 0.1 --geno-r2 --ld-window-bp 1000000 --ld-window 1000 --out out
+
+#LD representation (R)
+LD.R
+

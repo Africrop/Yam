@@ -1,0 +1,65 @@
+//Number of population samples (demes)
+4 
+
+//Population effective sizes (number of genes) 
+// Model 01
+39590
+4169
+4275
+7804 
+// Model 02
+//26380
+//3060
+//3164
+//6677 
+// Model 03
+//8059
+//10950
+//8696
+//11718 
+
+//Sample sizes 
+20 
+20 
+20 
+20
+
+//Growth rates: negative growth implies population expansion 
+0 
+0 
+0 
+0
+
+//Number of migration matrices : 0 implies no migration between demes 
+0 
+
+//historical event: time, source, sink, migrants, new size, new growth rate, migr. matrix  
+// Model 01
+3  historical event 
+1918 3 2 1 1 0 0
+2089 1 2 1 4.93693567e+01 0 0   
+40806 2 0 1 1.82437484e+00 0 0  
+// Model 02
+//3  historical event 
+//1354 3 1 1 1 0 0
+//1591 1 2 1 5.20651075e+01 0 0   
+//29149 2 0 1 2.20947688e+00 0 0  
+// Model 03
+//3  historical event 
+//5338 3 0 1 1 0 0
+//5831 1 2 1 5.72677093e-02 0 0   
+//5943 2 0 1 8.09740663e+00 0 0 
+
+//Number of independent loci [chromosome]  
+1 0 
+
+//Per chromosome: Number of linkage blocks 
+1 
+
+//per Block: data type, num loci, rec. rate and mut rate + optional parameters 
+// Model 01
+FREQ 1 0 5.46643545e-09
+// Model 02
+//FREQ 1 0 7.43137159e-09
+// Model 03
+//FREQ 1 0 1.00614833e-08

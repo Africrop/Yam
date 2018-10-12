@@ -1,0 +1,74 @@
+###################################################################################################################################
+#
+# Copyright 2017 IRD
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, see <http://www.gnu.org/licenses/> or
+# write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston,
+# MA 02110-1301, USA.
+#
+# You should have received a copy of the CeCILL-C license with this program.
+# If not see <http://www.cecill.info/licences/Licence_CeCILL-C_V1-en.txt>
+#
+# Intellectual property belongs to IRD 
+#
+# Written by Philippe Cubry and Nora Scarcelli
+#
+###################################################################################################################################
+
+
+###################################################################################################################################
+# This script estimates an origin of diffusion using Splatche2 simulation and ABC estimation
+# Needs files Group.R, splatche_launcher.R, splatche_input_files_creation.R, sum_stat_obs.R, sum_stat_sim.R and abc.R provided in folder 04_Splatche
+####################################################################################################################################
+
+
+
+##############
+# Groups definition (R)
+##############
+
+Group.R
+
+
+
+##############
+# Splatche2 simulation
+##############
+
+Rscript splatche_launcher.R $1 $2 # $1 = number of simulations; $2 = number of source population
+rm settings* datasets_1layer/dens_init* datasets_1layer/dyn* datasets_1layer/GeneS* datasets_1layer/genetic_* datasets_1layer/ppv* datasets_1layer/r* datasets_1layer/v* 
+mv datasets_1layer/ out/
+tar -czvf out.tar.gz out/
+
+
+
+##############
+# Estimation of summary statistics (R)
+##############
+
+#Observed data
+sum_stat_obs.R
+
+#Simulated data
+sum_stat_sim.R
+
+
+
+##############
+# abc estimation (R)
+##############
+
+abc.R
+

@@ -1,0 +1,65 @@
+###################################################################################################################################
+#
+# Copyright 2017 IRD
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, see <http://www.gnu.org/licenses/> or
+# write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston,
+# MA 02110-1301, USA.
+#
+# You should have received a copy of the CeCILL-C license with this program.
+# If not see <http://www.cecill.info/licences/Licence_CeCILL-C_V1-en.txt>
+#
+# Intellectual property belongs to IRD 
+#
+# Written by Philippe Cubry,  modified by Nora Scarcelli
+#
+###################################################################################################################################
+
+
+###################################################################################################################################
+# This script estimates the evolution of past hitory of effective population size 
+# Needs files bamCaller.py (https://github.com/stschiff/msmc-tools)  and smcpp.R available in folder 05_smcpp
+####################################################################################################################################
+
+
+##############
+# Mask creation
+##############
+
+#For each chromosome (chr$1)
+for i in {01,02,03,04,05,06,07,08,09,10,11,12,13,14,15,16,17,18,19,20,21}; do samtools mpileup -q 20 -Q 30 -C 50 -r chr$i\.1 -u -f Ref.fasta $1| bcftools call -c -V indels | bamCaller.py $2 $1-$i.mask.bed.gz | gzip -c > $1-$i.vcf.gz; done
+
+
+
+##############
+# Input creation for smc++
+##############
+
+#For each chromosome ($1 = 1:21)
+#list_sample.txt = list of sample names (one name per row)
+#list_sample_smcpp.txt = list of sample names in smc++ format
+for i in `cat list_sample.txt`; do smc++ vcf2smc -m mask.bed.gz -d $i $i vcf.vcf.gz chr$1.smc.masked_all.$i.gz chr$1.1 `cat list_sample_smcpp.txt `; done
+
+#smc++ 
+smc++ estimate -o output_unfold/ --unfold --tK 100000 6.5e-9 *masked*
+
+
+
+##############
+# Representation of smc++ results (R)
+##############
+
+smcpp.R
+

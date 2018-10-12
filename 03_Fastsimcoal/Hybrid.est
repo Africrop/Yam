@@ -1,0 +1,37 @@
+// Priors and rules file
+// *********************
+
+[PARAMETERS]
+//#isInt? #name  #dist. #min   #max
+//all N are in number of haploid individuals
+1  N1$        logunif     100  1000000   output
+1  N2$        logunif     100  1000000   output
+1  NPOP0$     logunif     100  1000000   output
+1  NPOP1$     logunif     100  1000000   output
+1  NPOP2$     logunif     100  1000000   output
+1  NPOP3$     logunif     100  1000000   output
+1  T1$        logunif     100  1000000   output
+1  Tx$        logunif     100  1000000   hide
+1  Ty$        logunif     100  1000000   hide
+0  MutRate$   logunif     1e-9 1e-7	 output
+//Model 01
+0  PROP0$        unif     0    1         output   bounded
+//Model 02
+//0  PROP1$        unif     0    1         output   bounded
+//Model 03
+//0  PROP0$        unif     0    1         output   bounded
+
+[RULES]
+
+[COMPLEX PARAMETERS]
+0  RES1$  =  N1$/NPOP2$     output
+0  RES2$  =  N2$/NPOP0$     output
+1 T2$ = T1$ + Tx$           output
+1 T0$ = T1$ - Ty$           output
+//Model 01
+0 PROP1$ = 1 - PROP0$       output
+//Model 02
+//0 PROP2$ = 1 - PROP1$       output
+//Model 03
+//0 PROP2$ = 1 - PROP0$       output
+

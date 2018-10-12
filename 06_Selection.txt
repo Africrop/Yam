@@ -1,0 +1,113 @@
+###################################################################################################################################
+#
+# Copyright 2017 IRD
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, see <http://www.gnu.org/licenses/> or
+# write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston,
+# MA 02110-1301, USA.
+#
+# You should have received a copy of the CeCILL-C license with this program.
+# If not see <http://www.cecill.info/licences/Licence_CeCILL-C_V1-en.txt>
+#
+# Intellectual property belongs to IRD 
+#
+# Written by Anne-Celine Thuillet,  modified by Nora Scarcelli
+#
+###################################################################################################################################
+
+
+###################################################################################################################################
+# This script launch several methods to detect signature of selection 
+####################################################################################################################################
+
+
+##############
+# Generation of one vcf per population
+##############
+
+#pop = D. rotundata, D. abyssinica, western D. praehensilis and Camerian D. praehensilis
+vcftools --vcf in.vcf --keep pop.txt --recode --out pop
+
+
+
+##############
+# SweeD for cultivated population only
+##############
+
+#For each chromosome ($1 = 01:21)
+#grid used:
+#grid	Chromosome
+#50000	21
+#90000	19
+#100000	15, 20
+#150000	14
+#170000	10, 11
+#180000	7
+#190000	3
+#200000	17
+#220000	18
+#230000	9, 16
+#250000	12
+#270000	4
+#280000	8
+#290000	13
+#300000	1
+#320000	5, 6
+#330000	2
+vcftools --vcf rotundata.vcf --chr chr$1.1 recode --out rotundata_chr$1.vcf 
+SweeD -name rotundata_chr$1 -input rotundata_chr$1.vcf -grid grid
+
+
+
+##############
+# Fst analysis for cultivated against each wild population
+##############
+
+#For each chromosome ($1 = 01:21)
+vcftools --vcf pop.vcf --chr chr$1.1 --weir-fst-pop praehensilis_west.txt --weir-fst-pop rotundata.txt --fst-window-size 50000 --fst-window-step 10000 --out pop_chr$1_fst_50000
+
+
+
+##############
+# Pi ratio
+##############
+
+#For each chromosome ($1 = 01:21)
+#pop = D. rotundata and western D. praehensilis
+vcftools --vcf pop.vcf --chr chr$1.1 --window-pi 100000 --window-pi-step 100000 --out pop_chr$1_pi10000
+
+
+
+##############
+# Gene annotation
+##############
+
+#test = SweeD, pi ratio and Fst
+windowBed -b TDr96_F1_Pseudo_Chromosome_v1.0.gff_20170804.gff3 -a test.txt > test_Annotation.txt
+grep "gene" test_Annotation.txt > test_Annotation_gene_ONLY.txt
+
+
+
+##############
+# Comparison of windows detected with contig detected in Akakpo et al. 2017
+##############
+
+#Calculation of contig position in the genome
+bwa index TDr96_F1_Pseudo_Chromosome_v1.0.fasta
+bwa mem TDr96_F1_Pseudo_Chromosome_v1.0.fasta selected_contig.fasta > contigs_positions.sam
+
+#Comparison
+windowBed -b contigs_positions.txt -a gene_for_comparison.txt > out.txt
+
